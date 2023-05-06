@@ -1,18 +1,7 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[4]:
-
-
 # Installs dependencies
 import tensorflow as tf
 import os
 import sys
-
-
-# In[5]:
-
-
 # Removes incompatible images 
 # Imports dependencies
 import cv2
@@ -23,11 +12,6 @@ data_dir = 'data'
 
 # Creates a list of extensions 
 image_exts = ['jpeg', 'jpg', 'bmp', 'png']
-
-
-# In[6]:
-
-
 # Loops through every folder in the data directory
 for subdir in ['test', 'train', 'validation']:
     for image_class in os.listdir(os.path.join(data_dir, subdir)):
@@ -50,37 +34,20 @@ for subdir in ['test', 'train', 'validation']:
                 # Removes the image if it cannot be opened
                 os.remove(image_path)
                 print('Issue with image: {}'.format(image_path))
-
-
-# In[7]:
-
-
 # Imports dependencies
 import numpy as np 
 from matplotlib import pyplot as plt
-
-
-# In[8]:
-
-
 # Builds an image dataset, using keras
 test = tf.keras.utils.image_dataset_from_directory('data/test')
 train = tf.keras.utils.image_dataset_from_directory('data/train')
 val= tf.keras.utils.image_dataset_from_directory('data/validation')
-
-
-# In[9]:
-
-
+Found 249 files belonging to 10 classes.
+Found 3054 files belonging to 10 classes.
+Found 194 files belonging to 10 classes.
 # Allow us to convert to a numpy iterator, allows access to the image dataset
 data_iterator_test = test.as_numpy_iterator()
 data_iterator_train = train.as_numpy_iterator()
 data_iterator_val = val.as_numpy_iterator()
-
-
-# In[10]:
-
-
 # Grabs a batch 
 try:
     batch_test = data_iterator_test.next()
@@ -88,42 +55,25 @@ try:
     batch_val = data_iterator_val.next()
 except StopIteration:
     print("End of dataset reached")
-
-
-# In[12]:
-
-
 # Checks which class is assigned to which image within the train dataset
 fig, ax = plt.subplots(ncols=4, figsize=(20,20))
 for idx, img in enumerate(batch_train[0][:4]):
     ax[idx].imshow(img.astype(int))
     ax[idx].title.set_text(batch_train[1][idx])
 
-
-# In[445]:
-
-
 # Scales the data
 # x represents the images 
 # y represents the labels
-test = data.map(lambda x,y: (x/255, y))
-train = data.map(lambda x,y: (x/255, y))
-val = data.map(lambda x,y: (x/255, y))
+num_classes = 10  
 
-
-# In[446]:
-
-
+test = test.map(lambda x, y: (x / 255, tf.one_hot(y, num_classes)))
+train = train.map(lambda x, y: (x / 255, tf.one_hot(y, num_classes)))
+val = val.map(lambda x, y: (x / 255, tf.one_hot(y, num_classes)))
 # Iterates batches of data as NumPy arrays
 # Every iterator returns a single data batch
 scaled_iterator_test = test.as_numpy_iterator()
 scaled_iterator_train = train.as_numpy_iterator()
 scaled_iterator_val = val.as_numpy_iterator() 
-
-
-# In[452]:
-
-
 # Scaled iterator
 try: 
     batch_test = scaled_iterator_test.next()
@@ -131,18 +81,9 @@ try:
     batch_val = scaled_iterator_val.next()
 except StopIteration:
     print("End of dataset reached")
-
-
-# In[453]:
-
-
 # Grabs next batch
 batch_test[0].max()
-
-
-# In[454]:
-
-
+1.0
 # Checks which class is assigned to which image within the test dataset
 # Checks that they've been scaled correctly 
 fig, ax = plt.subplots(ncols=4, figsize=(20,20))
@@ -150,35 +91,28 @@ for idx, img in enumerate(batch_test[0][:4]):
     ax[idx].imshow(img)
     ax[idx].title.set_text(batch_test[1][idx])
 
-
-# In[455]:
-
-
 # Grabs next batch
 batch_train[0].max()
-
-
-# In[456]:
-
-
+1.0
 # Checks which class is assigned to which image
 # Checks that they've been scaled correctly 
-fig, ax = plt.subplots(ncols=4, figsize=(20,20))
-for idx, img in enumerate(batch_train[0][:4]):
+fig, ax = plt.subplots(ncols=1, figsize=(20,20))
+for idx, img in enumerate(batch_train[0][:10]):
     ax[idx].imshow(img)
     ax[idx].title.set_text(batch_train[1][idx])
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+Cell In[30], line 5
+      3 fig, ax = plt.subplots(ncols=1, figsize=(20,20))
+      4 for idx, img in enumerate(batch_train[0][:10]):
+----> 5     ax[idx].imshow(img)
+      6     ax[idx].title.set_text(batch_train[1][idx])
 
-
-# In[392]:
-
+TypeError: 'AxesSubplot' object is not subscriptable
 
 # Grabs next batch
 batch_val[0].max()
-
-
-# In[393]:
-
-
+1.0
 # Checks which class is assigned to which image
 # Checks that they've been scaled correctly 
 fig, ax = plt.subplots(ncols=4, figsize=(20,20))
@@ -186,25 +120,11 @@ for idx, img in enumerate(batch_val[0][:4]):
     ax[idx].imshow(img)
     ax[idx].title.set_text(batch_val[1][idx])
 
-
-# In[394]:
-
-
 # Imports dependencies
 from tensorflow.keras.models import Sequential 
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten, Dropout
-
-
-# In[395]:
-
-
 # Establishes an instance of the sequential class
 model = Sequential()
-
-
-# In[396]:
-
-
 # Adds in our layers
 
 # Adds a convolutional layer and a max pooling layer
@@ -225,7 +145,7 @@ model.add(MaxPooling2D())
 # Adds a convolutional layer and a max pooling layer
 # Has 16 filters (3,3 pixels in size)
 # Stride moving one pixel by one 
-model.add(Conv2D(16, (3,3), 1, activation='relu'))
+model.add(Conv2D(16, (3,3), 1, activation='softmax'))
 model.add(MaxPooling2D())
 
 # Flattens to remove the channels value 
@@ -234,50 +154,58 @@ model.add(Flatten())
 # 256 values will now be the output
 model.add(Dense(256, activation='relu'))
 # Creates a single output, 0 or 1 
-model.add(Dense(1, activation='sigmoid'))
-
-
-# In[397]:
-
-
+model.add(Dense(10, activation='relu'))
 # Compiles the model using the 'adam' optimiser. Specifying what the loss is. The metric tracked is accuracy, shows how well the model is classifying either 0 or 1.
-model.compile('adam', loss=tf.losses.BinaryCrossentropy(), metrics=['accuracy'])
-
-
-# In[398]:
-
-
+model.compile('adam', loss=tf.losses.CategoricalCrossentropy(), metrics=['accuracy'])
 # Displays how the model transforms the data
 model.summary()
-
-
-# In[399]:
-
-
+Model: "sequential"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ conv2d (Conv2D)             (None, 254, 254, 16)      448       
+                                                                 
+ max_pooling2d (MaxPooling2D  (None, 127, 127, 16)     0         
+ )                                                               
+                                                                 
+ conv2d_1 (Conv2D)           (None, 125, 125, 32)      4640      
+                                                                 
+ max_pooling2d_1 (MaxPooling  (None, 62, 62, 32)       0         
+ 2D)                                                             
+                                                                 
+ conv2d_2 (Conv2D)           (None, 60, 60, 16)        4624      
+                                                                 
+ max_pooling2d_2 (MaxPooling  (None, 30, 30, 16)       0         
+ 2D)                                                             
+                                                                 
+ flatten (Flatten)           (None, 14400)             0         
+                                                                 
+ dense (Dense)               (None, 256)               3686656   
+                                                                 
+ dense_1 (Dense)             (None, 10)                2570      
+                                                                 
+=================================================================
+Total params: 3,698,938
+Trainable params: 3,698,938
+Non-trainable params: 0
+_________________________________________________________________
 # Refers to the logs directory
 logdir='logs'
-
-
-# In[400]:
-
-
 # Logs model training into the 'logs' file
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-
-
-# In[401]:
-
-
 # Model.fit takes in the training data
 # Epoche is how long we're going to train for
 # Passes through the validation data, to see how well the model is performing in real time
 # Stores in a variable called history 
-hist = model.fit(train, epochs=20, validation_data=val, callbacks=[tensorboard_callback])
-
-
-# In[403]:
-
-
+hist = model.fit(train, epochs=5, validation_data=val, callbacks=[tensorboard_callback])
+Epoch 1/5
+96/96 [==============================] - 104s 1s/step - loss: 2.8595 - accuracy: 0.2927 - val_loss: 3.1474 - val_accuracy: 0.3557
+Epoch 2/5
+96/96 [==============================] - 107s 1s/step - loss: 2.8590 - accuracy: 0.3127 - val_loss: 3.1983 - val_accuracy: 0.3608
+Epoch 3/5
+96/96 [==============================] - 97s 1s/step - loss: 2.8583 - accuracy: 0.3304 - val_loss: 3.1364 - val_accuracy: 0.3711
+Epoch 4/5
+93/96 [============================>.] - ETA: 3s - loss: 2.7840 - accuracy: 0.3545
 # Plots the performance 
 fig = plt.figure()
 
@@ -290,11 +218,6 @@ plt.plot(hist.history['val_loss'], color='orange', label='val_loss')
 fig.suptitle('Loss', fontsize=20)
 plt.legend(loc="upper left")
 plt.show()
-
-
-# In[404]:
-
-
 # Plots the performance, visualising accuracy
 fig = plt.figure()
 
@@ -304,27 +227,12 @@ plt.plot(hist.history['val_accuracy'], color='orange', label='val_accuracy')
 fig.suptitle('Accuracy', fontsize=20)
 plt.legend(loc="upper left")
 plt.show()
-
-
-# In[405]:
-
-
 # Imports key metrics
 from tensorflow.keras.metrics import Precision, Recall, BinaryAccuracy
-
-
-# In[406]:
-
-
 # Establishes instances of the metrics
 pre = Precision()
 re = Recall()
 acc = BinaryAccuracy()
-
-
-# In[407]:
-
-
 # Loops through each batch in the testing data
 for batch in test.as_numpy_iterator(): 
     X, y = batch
@@ -336,59 +244,22 @@ for batch in test.as_numpy_iterator():
     re.update_state(y, yhat)
     # Returns accuracy
     acc.update_state(y, yhat)
-
-
-# In[408]:
-
-
 print(f'Precision: {pre.result().numpy()}, Recall:{re.result().numpy()}, Accuracy: {acc.result().numpy()}')
-
-
-# In[409]:
-
-
 # Imports opencv
 import cv2
-
-
-# In[425]:
-
-
 # Reads and display images
 img = cv2.imread('5a2b4bbf-d9fe-45a2-aa0d-295a86804cb6.jpg')
 plt.imshow(img)
 plt.show()
-
-
-# In[426]:
-
-
 # Resizes to 256 wide and 256 heigh
 resize = tf.image.resize(img, (256,256))
 # Displays the resized image
 plt.imshow(resize.numpy().astype(int))
 plt.show()
-
-
-# In[427]:
-
-
 yhat = model.predict(np.expand_dims(resize/255, 0))
-
-
-# In[428]:
-
-
 yhat
-
-
-# In[429]:
-
-
 if yhat < 0.5: 
     print(f'Predicted class is dress.')
 else:
     print(f'Predicted class is hat.')
-
-
-# In[ ]:
+ 
